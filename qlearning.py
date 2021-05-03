@@ -3,9 +3,8 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 ACTION_SPACE = [0, 1] # [DONT PUSH, PUSH]
-epsilon = 0.1 # parameter for epsilon-greedy q-learning
 
-def act(action_values):
+def act(action_values, epsilon):
     """
     args:
         action_values: array of q-values for actions
@@ -22,8 +21,8 @@ def reward(previous_action, action):
     return -action + 10 * previous_action
 
 
-def run_episode(action_values, previous_action):
-    a = act(action_values)
+def run_episode(action_values, previous_action, epsilon=0.1):
+    a = act(action_values,epsilon)
     r = reward(previous_action, a)
     return a, r
 
@@ -42,7 +41,7 @@ def append_to_log(dct, update_dict):
     
 
 class QLearning:
-    def __init__(self, schedule: callable = lambda n: 1/n):
+    def __init__(self, q_init = [2,1], schedule: callable = lambda n: 1/n):
         """
         args:
             schedule: 1/n corresponds to computing the average of 
@@ -50,7 +49,7 @@ class QLearning:
         to taking a weighted average instead, with values close to 1
         weighting recent values more.
         """
-        self.action_values = [0, -1]
+        self.action_values = q_init
         self.num_updates = [1, 1]
         self.rundata = {}
         self.weighted_avg = True
@@ -76,13 +75,21 @@ def running_mean(a, window=30):
 
 
 def run_and_plot():
-    print(f"Training agent using {epsilon}-greedy Q-learning...")
-    qvalues = QLearning()
     a = 1 
+    batch_size = 10000
+    epochs = 30
+    init_q = [2,1]
+    qvalues = QLearning(q_init=init_q, schedule=lambda n: 0.1)
+    eps = 0.1*2 # parameter for epsilon-greedy q-learning
+    print(f"Training agent using {eps}-greedy Q-learning...")
 
-    for _ in tqdm(range(50000)):
-        a, r = run_episode(qvalues.action_values, a)
-        qvalues.update(a, r)
+    for _ in tqdm(range(epochs)):
+        batch = []
+        for _ in range(batch_size):
+            a,r = run_episode(qvalues.action_values, a, epsilon=eps)
+            batch.append((a,r))
+        for b in batch:
+            qvalues.update(b[0], b[1])
 
 
     # plotting
@@ -95,6 +102,9 @@ def run_and_plot():
     ax.set_ylabel("learned action-value")
     ax.set_xlabel("training iteration")
     ax.set_title("Q-values during training")
+    # ax.set_ylim([4,9])
+    ax.set_xlim([0,1500])
+
     ax.legend()
 
 
