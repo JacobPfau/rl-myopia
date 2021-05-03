@@ -76,10 +76,10 @@ def running_mean(a, window=30):
 
 def run_and_plot():
     a = 1 
-    batch_size = 10000
-    epochs = 30
+    batch_size = 10 #converges for b.s. = 1000
+    epochs = 10000
     init_q = [2,1]
-    qvalues = QLearning(q_init=init_q, schedule=lambda n: 0.1)
+    qvalues = QLearning(q_init=init_q, schedule=lambda n: 0.1) # deceptive apparent convergence for lr = 0.01.
     eps = 0.1*2 # parameter for epsilon-greedy q-learning
     print(f"Training agent using {eps}-greedy Q-learning...")
 
@@ -102,8 +102,8 @@ def run_and_plot():
     ax.set_ylabel("learned action-value")
     ax.set_xlabel("training iteration")
     ax.set_title("Q-values during training")
-    # ax.set_ylim([4,9])
-    ax.set_xlim([0,1500])
+    # ax.set_ylim([7,9])
+    # ax.set_xlim([0,1500])
 
     ax.legend()
 
