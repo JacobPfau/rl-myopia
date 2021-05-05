@@ -63,6 +63,7 @@ class QLearning:
         """keep track of mean action-values"""
         stepsize = self.schedule(self.num_updates[action])
         self.action_values[state][action] += stepsize * (reward - self.action_values[state][action])
+        if state==1 and action==1: print(reward - self.action_values[state][action])
         self.num_updates[action] += 1
         self.log(rewards=reward,
                  actions=action,
@@ -94,10 +95,9 @@ def run_and_plot():
         for _ in range(batch_size):
             a,r = run_episode(a,qvalues.action_values, epsilon=eps)
             batch.append((a,r))
-            if a==0: print(batch[-2][0],a,r)
-        for ind,b in enumerate(batch, start=1):
-            qvalues.update(batch[ind-1][0],b[0], b[1])
-    print(qvalues.action_values)
+        for ind,b in enumerate(batch[1:], start=1):
+            qvalues.update(batch[ind-1][0],b[0],b[1])
+
 
 
     # plotting
@@ -111,7 +111,7 @@ def run_and_plot():
     ax.set_xlabel("training iteration")
     ax.set_title("Q-values during training in didn't push state")
     # ax.set_ylim([7,9])
-    ax.set_xlim([0,100])
+    # ax.set_xlim([0,500])
 
     ax.legend()
 
@@ -122,7 +122,7 @@ def run_and_plot():
     ax.set_xlabel("training iteration")
     # ax.set_title("Q-values during training")
     # ax.set_ylim([7,9])
-    ax.set_xlim([0,100])
+    # ax.set_xlim([0,500])
 
     ax.legend()
 
