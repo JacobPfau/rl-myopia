@@ -75,50 +75,54 @@ def running_mean(a, window=30):
 
 
 def run_and_plot():
-    a = 1 
-    batch_size = 10 #converges for b.s. = 1000
-    epochs = 10000
-    init_q = [2,1]
-    qvalues = QLearning(q_init=init_q, schedule=lambda n: 0.1) # deceptive apparent convergence for lr = 0.01.
-    eps = 0.1*2 # parameter for epsilon-greedy q-learning
-    print(f"Training agent using {eps}-greedy Q-learning...")
+    for batch_size in [1,10,100,1000]:
+        epochs = int(10000/batch_size)
+        for eps in [0.1*2,0.01*2]:
+            for init_q in [[0,0],[1,0],[0,1],[10*eps/2,-1+10*eps/2],[10-10*eps/2, 9-10*eps/2]]:
+                if np.random.uniform()>0.5: a=1
+                else: a=0
+                qvalues = QLearning(q_init=init_q, schedule=lambda n: 0.1) # deceptive apparent convergence for lr = 0.01.
+                # parameter for epsilon-greedy q-learning
+                print(f"Training agent using {eps}-greedy Q-learning...")
 
-    for _ in tqdm(range(epochs)):
-        batch = []
-        for _ in range(batch_size):
-            a,r = run_episode(qvalues.action_values, a, epsilon=eps)
-            batch.append((a,r))
-        for b in batch:
-            qvalues.update(b[0], b[1])
-
-
-    # plotting
-    fig, axs = plt.subplots(2, 1, figsize=[10, 10])
-    axs = axs.flatten()
-
-    ax = axs[0]
-    ax.plot(qvalues.rundata['push_values'], label='push')
-    ax.plot(qvalues.rundata['dp_values'], label='dont push')
-    ax.set_ylabel("learned action-value")
-    ax.set_xlabel("training iteration")
-    ax.set_title("Q-values during training")
-    # ax.set_ylim([7,9])
-    # ax.set_xlim([0,1500])
-
-    ax.legend()
+                for _ in tqdm(range(epochs)):
+                    batch = []
+                    for _ in range(batch_size):
+                        a,r = run_episode(qvalues.action_values, a, epsilon=eps)
+                        batch.append((a,r))
+                    for b in batch:
+                        qvalues.update(b[0], b[1])
 
 
-    ax = axs[1]
-    push_freq = sum(qvalues.rundata['actions']) / len(qvalues.rundata['actions'])
-    push_freq
+                # plotting
+                fig, axs = plt.subplots(2, 1, figsize=[10, 10])
+                axs = axs.flatten()
 
-    ax.bar(["don't push", "push"], [1-push_freq, push_freq])
-    ax.set_ylabel("Frequency")
-    ax.text(0, 1 - push_freq, f"{round(1-push_freq, 3)}", ha='center', va='bottom')
-    ax.text(1, push_freq, f"{round(push_freq, 3)}", ha='center', va='bottom')
-    ax.set_title("Actions taken during all of training")
+                ax = axs[0]
+                ax.plot(qvalues.rundata['push_values'], label='push')
+                ax.plot(qvalues.rundata['dp_values'], label='dont push')
+                ax.set_ylabel("learned action-value")
+                ax.set_xlabel("training iteration")
+                ax.set_title("Q-values during training")
+                # ax.set_ylim([7,9])
+                # ax.set_xlim([0,1500])
 
-    plt.show()
+                ax.legend()
+
+
+                ax = axs[1]
+                push_freq = sum(qvalues.rundata['actions']) / len(qvalues.rundata['actions'])
+                push_freq
+
+                ax.bar(["don't push", "push"], [1-push_freq, push_freq])
+                ax.set_ylabel("Frequency")
+                ax.text(0, 1 - push_freq, f"{round(1-push_freq, 3)}", ha='center', va='bottom')
+                ax.text(1, push_freq, f"{round(push_freq, 3)}", ha='center', va='bottom')
+                ax.set_title("Actions taken during all of training")
+
+                # plt.show()
+                fname = 'batch='+ str(batch_size)+ ' eps='+str(eps)+ ' init_q='+ str(init_q)+'.png'
+                plt.savefig(fname)
 
 if __name__=="__main__":
     run_and_plot()
